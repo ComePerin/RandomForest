@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "DataSet.h"
-#include "DecisionTree.h"
+#include "RandomForest.h"
 #include "TreeParameters.h"
 
 int main() {
@@ -32,22 +32,13 @@ int main() {
   TreeParameters params;
   params.maxDepth = 5;
   params.minSamplesSplit = 2;
+  params.maxFeatures = 2;
 
-  // Build the decision tree
-  DecisionTree tree(&dataset, params);
-  tree.fit();
+  RandomForest forest(10, params);
+  forest.fit(&dataset);
 
-  // Test predictions
-  std::cout << "Decision Tree trained successfully!\n";
-  std::cout << "Testing predictions:\n";
-
-  std::cin.get();
-
-  std::vector<float> sample1 = {0.0f, 0.0f};
-  std::cout << "Sample [0.0, 0.0] -> Class " << tree.predict(sample1) << "\n";
-
-  std::vector<float> sample2 = {1.0f, 1.0f};
-  std::cout << "Sample [1.0, 1.0] -> Class " << tree.predict(sample2) << "\n";
+  std::vector<float> sample = {0.0f, 0.0f};
+  std::cout << "Sample [0.0, 0.0] -> Class " << forest.predict(sample) << "\n";
 
   return 0;
 }

@@ -70,7 +70,7 @@ class TreeNode {
                              std::vector<int>& rightClassCounts,
                              int nRight) const;
 
-  Split findBestSplit() const;
+  Split findBestSplit(const TreeParameters& params) const;
 };
 
 #endif  // TREENODE_H

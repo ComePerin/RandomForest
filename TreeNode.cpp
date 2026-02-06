@@ -1,5 +1,7 @@
 #include "TreeNode.h"
 
+#include <random>
+
 #include "DataSet.h"
 #include "Impurity.h"
 
@@ -59,11 +61,26 @@ float TreeNode::computeImpurity() const {
   return impurity::computeGiniImpurity(classCounts);
 }
 
-Split TreeNode::findBestSplit() const {
+Split TreeNode::findBestSplit(const TreeParameters &params) const {
   Split bestSplit = {-1, 0.0f, std::numeric_limits<float>::max()};
 
-  for (int featureIndex = 0; featureIndex < dataSet_->n_features();
-       ++featureIndex) {
+  std::vector<int> consideredFeaturesIndices(dataSet_->n_features());
+  for (int i = 0; i < dataSet_->n_features(); ++i) {
+    consideredFeaturesIndices[i] = i;
+  }
+
+  if (params.maxFeatures > 0 && params.maxFeatures < dataSet_->n_features()) {
+    // shuffle consideredFeaturesIndices
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(consideredFeaturesIndices.begin(),
+                 consideredFeaturesIndices.end(), g);
+
+    // take only the first maxFeatures features
+    consideredFeaturesIndices.resize(params.maxFeatures);
+  }
+
+  for (int featureIndex : consideredFeaturesIndices) {
     // Sort samples_indices according to feature values for each feature
     std::vector<int> samplesIndicesSortedByFeature(sampleIndices_);
 
@@ -128,7 +145,7 @@ void TreeNode::split(const TreeParameters &params) {
     return;
   }
 
-  Split bestSplit = findBestSplit();
+  Split bestSplit = findBestSplit(params);
 
   if (bestSplit.featureIndex == -1) {
     makeLeaf();
