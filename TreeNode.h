@@ -3,8 +3,17 @@
 
 #include <vector>
 #include <memory>
+#include <limits>
+#include <algorithm>
 
-class DataSet;
+#include "DataSet.h"
+#include "TreeParameters.h"
+
+struct Split {
+    int featureIndex;   //Index of the feature used for the split
+    float threshold;    //Threshold value for the split
+    float impurity;     //Impurity of the split
+};
 
 class TreeNode {
 
@@ -13,14 +22,14 @@ class TreeNode {
         //dataSet : pointer to the full dataset (not owned)
         //sampleIndices : indices of samples belonging to this node
         //depth : depth of the node in the tree
-        TreeNode(const DataSet* dataSet,
-                 std::vector<int> sampleIndices,
-                 int depth);
+        TreeNode(const DataSet* dataSet, std::vector<int> sampleIndices, int depth);
 
         TreeNode(const DataSet* dataSet);
 
         //Compute the best split for this node and create child nodes
-        void split();
+        void split(const TreeParameters &params);
+
+        int predict(const std::vector<float>& sample) const;
 
     private:
         //Left and right child nodes (binary tree)
@@ -44,7 +53,10 @@ class TreeNode {
         int depth_;
 
         //Check whether the node should be a leaf
+        bool isLeaf(const TreeParameters &params) const;
         bool isLeaf() const;
+
+        bool isLeaf_ = false;
 
         //Convert this node into a leaf
         void makeLeaf();
@@ -52,8 +64,12 @@ class TreeNode {
         //Compute impurity of the current node
         float computeImpurity() const;
 
+        bool isPure() const;
+
         //Compute impurity resulting from a candidate split
-        float computeSplitImpurity(int featureIndex, float threshold) const;
+        float computeSplitImpurity(std::vector<int> &leftClassCounts, int nLeft, std::vector<int> &rightClassCounts, int nRight) const;
+
+        Split findBestSplit() const;
 };
 
 #endif // TREENODE_H
