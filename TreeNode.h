@@ -41,15 +41,15 @@ class TreeNode {
   // Indices of samples handled by this node
   std::vector<int> sampleIndices_;
 
+  // Depth of the node in the tree
+  int depth_;
+
   // Split parameters (valid only if the node is not a leaf)
   int featureIndex_;  // Index of the feature used for the split
   float threshold_;   // Threshold value for the split
 
   // Predicted class if this node is a leaf
   int predictedClass_;
-
-  // Depth of the node in the tree
-  int depth_;
 
   // Check whether the node should be a leaf
   bool isLeaf(const TreeParameters& params) const;

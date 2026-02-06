@@ -1,15 +1,25 @@
 #include "TreeNode.h"
+
 #include "DataSet.h"
 #include "Impurity.h"
 
 TreeNode::TreeNode(const DataSet *dataSet, std::vector<int> sampleIndices,
                    int depth)
-    : dataSet_(dataSet), sampleIndices_(std::move(sampleIndices)),
-      depth_(depth), featureIndex_(-1), threshold_(0.0f), predictedClass_(-1) {}
+    : dataSet_(dataSet),
+      sampleIndices_(std::move(sampleIndices)),
+      depth_(depth),
+      featureIndex_(-1),
+      threshold_(0.0f),
+      predictedClass_(-1),
+      isLeaf_(false) {}
 
 TreeNode::TreeNode(const DataSet *dataSet)
-    : dataSet_(dataSet), featureIndex_(-1), threshold_(0.0f),
-      predictedClass_(-1), depth_(0) {
+    : dataSet_(dataSet),
+      depth_(0),
+      featureIndex_(-1),
+      threshold_(0.0f),
+      predictedClass_(-1),
+      isLeaf_(false) {
   // Initialize the node with all samples from the dataset
   int n = dataSet_->n_samples();
   sampleIndices_.reserve(n);
@@ -23,7 +33,6 @@ float TreeNode::computeSplitImpurity(std::vector<int> &leftClassCounts,
                                      int nLeft,
                                      std::vector<int> &rightClassCounts,
                                      int nRight) const {
-
   // Split dégénéré : on l'écarte
   if (nLeft == 0 || nRight == 0) {
     return std::numeric_limits<float>::max();
@@ -39,7 +48,6 @@ float TreeNode::computeSplitImpurity(std::vector<int> &leftClassCounts,
 }
 
 float TreeNode::computeImpurity() const {
-
   int c = dataSet_->n_classes();
   std::vector<int> classCounts(c, 0);
 
@@ -52,12 +60,10 @@ float TreeNode::computeImpurity() const {
 }
 
 Split TreeNode::findBestSplit() const {
-
   Split bestSplit = {-1, 0.0f, std::numeric_limits<float>::max()};
 
   for (int featureIndex = 0; featureIndex < dataSet_->n_features();
        ++featureIndex) {
-
     // Sort samples_indices according to feature values for each feature
     std::vector<int> samplesIndicesSortedByFeature(sampleIndices_);
 
@@ -80,8 +86,7 @@ Split TreeNode::findBestSplit() const {
       rightClassCounts[label]++;
     }
 
-    if (samplesIndicesSortedByFeature.size() < 2)
-      continue;
+    if (samplesIndicesSortedByFeature.size() < 2) continue;
 
     for (size_t i = 0; i < samplesIndicesSortedByFeature.size() - 1; ++i) {
       int sampleIndex = samplesIndicesSortedByFeature[i];
@@ -98,8 +103,7 @@ Split TreeNode::findBestSplit() const {
       float nextValue = dataSet_->getFeatureValue(
           samplesIndicesSortedByFeature[i + 1], featureIndex);
 
-      if (currentValue >= nextValue)
-        continue; // Skip redundant split
+      if (currentValue >= nextValue) continue;  // Skip redundant split
 
       // Compute impurity for the current split
       float splitImpurity = computeSplitImpurity(leftClassCounts, nLeft,
@@ -109,7 +113,7 @@ Split TreeNode::findBestSplit() const {
       if (splitImpurity < bestSplit.impurity) {
         bestSplit.featureIndex = featureIndex;
         bestSplit.threshold = (currentValue + nextValue) /
-                              2.0f; // Midpoint between current and next value
+                              2.0f;  // Midpoint between current and next value
         bestSplit.impurity = splitImpurity;
       }
     }
@@ -151,12 +155,15 @@ void TreeNode::split(const TreeParameters &params) {
   right_ =
       std::make_unique<TreeNode>(dataSet_, std::move(rightIndices), depth_ + 1);
 
+  // Recursively split the child nodes
+  left_->split(params);
+  right_->split(params);
+
   // Clear the sample indices from the current node to save memory
   sampleIndices_.clear();
 }
 
 bool TreeNode::isLeaf(const TreeParameters &params) const {
-
   // Check stopping criteria
   if (params.maxDepth >= 0 && depth_ >= params.maxDepth) {
     return true;
@@ -180,7 +187,6 @@ bool TreeNode::isLeaf() const { return isLeaf_; }
 bool TreeNode::isPure() const { return computeImpurity() == 0.0f; }
 
 void TreeNode::makeLeaf() {
-
   int c = dataSet_->n_classes();
   std::vector<int> classCounts(c, 0);
 
