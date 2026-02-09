@@ -24,9 +24,6 @@ HEART_TARGET := heart
 
 all: $(IRIS_TARGET) $(HEART_TARGET)
 
-iris: $(IRIS_TARGET)
-heart: $(HEART_TARGET)
-
 $(IRIS_TARGET): $(LIB_OBJ) $(IRIS_OBJ)
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
